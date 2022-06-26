@@ -96,9 +96,12 @@ while True:
     elif option=='10':# Find customer by name")
         pass
     elif option=='11':# Remove book")
-        pass
+        book_name = input('Enter book name: ')
+        library.remove_book(book_name)
     elif option=='12':# Remove customer")
-        pass
+        customer_id = input('Enter customer id: ')
+        library.remove_customer(customer_id)
+        input('Press enter to continue')
     elif option=='Q':#  for quit")
         break
 
