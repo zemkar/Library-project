@@ -171,10 +171,24 @@ class Library:
     def remove_customer(self, customer_id):  #TODO 
         #customer = Customer()
         customer = self.find_by(False, customer_id, 'customers')[0]
-        pass
+        if len(customer.get_books()) > 1:
+            if input('This customer has unreturned books. \nReturn those books? ') in ('y', 'Y', 'yes', 'Yes'):
+                books = customer.get_books()
+                for book in books[1:]:
+                    self.close_loan(customer.get_uid(), book)
+            elif input('Remove thos books? ') in ('y', 'Y', 'yes', 'Yes'):
+                pass    # TODO  remove books
+            else:
+                print('Canseled.')
+                return
+        self.__customers.remove(customer)
 
-    def remove_book():  #TODO 
-        pass
+    def remove_book(self, book_name):  #TODO 
+        book = self.find_by(True, book_name, 'books')[0]
+        if book.get_loaner_id():
+            self.close_loan(book.get_loaner_id(), book.get_uid())
+        self.__books.remove(book)
+        print('Book removed.')
 
     def print_data(self, data_type, is_debug):
         if data_type == 'customers':
