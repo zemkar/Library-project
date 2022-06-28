@@ -1,7 +1,7 @@
 from customer import Customer
 from book import Book
 from loan import Loan
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 class Library:
     def __init__(self):
@@ -100,18 +100,18 @@ class Library:
         for book in self.__books:
             if uid <= int(book.get_uid()):
                 uid = int(book.get_uid()) + 1
-        return uid
+        return str(uid)
 
-    def find_by(self, is_name, uid_or_name, where_search):
+    def find_by(self, uid_or_name, where_search):
         match = []
         if where_search == 'customers':
             for customer in self.__customers:
-                if is_name and customer.get_name() == uid_or_name or customer.get_uid() == uid_or_name:
+                if (not uid_or_name.isnumeric()) and customer.get_name() == uid_or_name or customer.get_uid() == uid_or_name:
                     match.append(customer)
             return match        
         elif where_search == 'books':
             for book in self.__books:
-                if is_name and book.get_name() == uid_or_name or book.get_uid() == uid_or_name:
+                if (not uid_or_name.isnumeric()) and book.get_name() == uid_or_name or book.get_uid() == uid_or_name:
                     match.append(book)
             return match
         elif where_search == 'loans':
@@ -127,15 +127,19 @@ class Library:
         return False
 
     def choice_book(self, book_name, is_get):
-        books = self.find_by(True, book_name, 'books')
+        books = self.find_by(book_name, 'books')
         for i in range(len(books)):
-            print(f'[{i+1}] {books[i]}')
+            print(f'[#{i+1}] ', end='')
+            books[i].print()
+            print()
         confirm = input('Confirm your choice by entering the line number\nor press enter to return: ')
         if confirm.isdigit() and int(confirm)-1 in range(len(books)):
             confirm = int(confirm) - 1
             if not is_get and books[confirm].get_loaner_id():
-                customer = self.find_by(is_name=False, uid_or_name=books[confirm].get_loaner_id(), where_search='customers' )[0]
-                input(f'This book already loaned by {customer}\nPress enter to return ')
+                customer = self.find_by(uid_or_name=books[confirm].get_loaner_id(), where_search='customers' )[0]
+                print(f'This book already loaned by ')
+                customer.print()
+                input('\nPress enter to return ')
                 return False
             else:
                 return books[confirm]
@@ -143,12 +147,18 @@ class Library:
             return False
 
     def choice_customer(self, customer_id):
-        customer = self.find_by(False, customer_id, 'customers')[0]
+        customer = self.find_by(customer_id, 'customers')
+        if customer == []:
+            return False    
+        customer = customer[0]
         customer_books = customer.get_books()
         lates = 0
         if customer_books != ['']:
             for book_id in customer_books[1:]:
-                loan = self.find_by(False, [book_id, customer_id], 'loans')[0]
+                loan = self.find_by([book_id, customer_id], 'loans')
+                if loan == []:
+                    return False
+                loan = loan[0]
                 if not loan.is_late():
                     lates += 1
         if lates == 0:
@@ -158,33 +168,32 @@ class Library:
                 return customer
             return False
 
-    def close_loan(self, customer_id, book_id):  #TODO 
+    def close_loan(self, customer_id, book_id): 
         for loan in self.__loans:
             if loan.compare_uid(customer_uid_to_compare=customer_id, book_uid_to_compare=book_id):
                 self.__loans.remove(loan)
-                self.find_by(False, book_id, 'books')[0].remove_customer_id()
-                self.find_by(False, customer_id, 'customers')[0].return_book(book_id)
+                self.find_by(book_id, 'books')[0].remove_customer_id()
+                self.find_by(customer_id, 'customers')[0].return_book(book_id)
                 print('book returned')
             
-#TODO ---------------------------------------------------
-
-    def remove_customer(self, customer_id):  #TODO 
+    def remove_customer(self, customer_id): 
         #customer = Customer()
-        customer = self.find_by(False, customer_id, 'customers')[0]
+        customer = self.find_by(customer_id, 'customers')[0]
         if len(customer.get_books()) > 1:
+            books = customer.get_books()
             if input('This customer has unreturned books. \nReturn those books? ') in ('y', 'Y', 'yes', 'Yes'):
-                books = customer.get_books()
                 for book in books[1:]:
                     self.close_loan(customer.get_uid(), book)
             elif input('Remove thos books? ') in ('y', 'Y', 'yes', 'Yes'):
-                pass    # TODO  remove books
+                for book in books[1:]:
+                    self.remove_book(book)
             else:
                 print('Canseled.')
                 return
         self.__customers.remove(customer)
 
-    def remove_book(self, book_name):  #TODO 
-        book = self.find_by(True, book_name, 'books')[0]
+    def remove_book(self, book_name):
+        book = self.find_by(book_name, 'books')[0]
         if book.get_loaner_id():
             self.close_loan(book.get_loaner_id(), book.get_uid())
         self.__books.remove(book)
@@ -209,7 +218,7 @@ class Library:
                 else: 
                     book.print()
                     if book.get_loaner_id():
-                        return_date = self.find_by(False, [book.get_uid(), book.get_loaner_id()], 'loans')[0].get_return_date()
+                        return_date = self.find_by([book.get_uid(), book.get_loaner_id()], 'loans')[0].get_return_date()
                         print('______'+return_date, end='')
                     print()
         elif data_type == 'loans':
@@ -229,5 +238,4 @@ class Library:
                     print(loan.overdue())
                     
 
-
-
+# TODO options
