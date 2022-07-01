@@ -86,11 +86,11 @@ while True:
         print('\n'*10)
     elif option=='9': # Find book
         print('\n'*3)
-        funcs.search(input('Enter book name or id: '), 'books')
+        funcs.search(input('Enter book name or id: '), 'books', library)
         print('\n'*3)
     elif option=='10':# Find customer
         print('\n'*3)
-        funcs.search(input('Enter customer id or name: '), 'customers')
+        funcs.search(input('Enter customer id or name: '), 'customers', library)
         print('\n'*3)
     elif option=='11':# Remove book
         print('\n'*3)
@@ -119,21 +119,30 @@ while True:
         print()
         library.print_data('loans', True)
         if test  == 1: # add customer
+            #funcs.new_customer(' #customer id ', ' #customer name ', ' #customer city ', ' #age ', library) 
+            # 4 first parameters get from user as string
             funcs.new_customer('11', 'aa', 'customer city', '11', library)
             funcs.new_customer('12', 'aa', 'customer city', '11', library)
             funcs.new_customer('11', 'aa', 'customer city', '11', library)
         elif test == 2:                       # add books
+            #funcs.new_book(is_uid_get, ' # book id ', ' #book name ', ' #book author ', ' #publishung year ', ' # type(1-3) ', library)
+            # first parameter  for choise, get id from user or generate it, next 5  parameters get from user as string
             funcs.new_book(is_uid_get, '100', 'zz', 'book author', '11', '1', library)
             funcs.new_book(is_uid_get, '101', 'xx', 'book _author', '11', '2', library)
             funcs.new_book(is_uid_get, '101', 'xx', 'book _author', '11', '2', library)
         elif test == 3:                       # loan this books
+            #funcs.open_loan(' #book name or id ', ' #customer name or id ', library)
+            # first parameter get book name or id and second get customer name or id
             funcs.open_loan('zz', '11', library)
             funcs.open_loan('101', '11', library)
             funcs.open_loan('xx', '11', library)
         elif test == 4:                       # return book
+            #funcs.close_loan(' #book name or id ', library)
+            # get name or id of book as string
             funcs.close_loan('xx', library)
         elif test == 5:
             funcs.open_loan('101', '11', library)
+            #library.remove_book(' #book name or id')
             library.remove_book('xx')
         test += 1
     elif option == 's':

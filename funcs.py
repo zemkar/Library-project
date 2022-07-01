@@ -57,6 +57,7 @@ def close_loan(book_name, library):
 
     return library
 
-def search(uid_or_name, where_search):
+def search(uid_or_name, where_search, library):
     if (data := library.find_by(uid_or_name, where_search)):
-        data.print()
+        data[0].print()
+        input('\nPress enter to continue')
