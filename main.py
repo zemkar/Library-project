@@ -54,31 +54,14 @@ while True:
         print('\n'*10)
     elif option=='3': # Loan a book
         print('\n'*3)
-    # choice book
         book_name=input("enter a book name or id: ")
-        # book = library.choice_book(book_name, False)
-        # if not book:
-        #     continue
-    # choice customer
         print('\n'*3)
         customer_id=input("enter customer id or name please: ")
-        # customer = library.choice_customer(customer_id)
-        # if not customer:
-        #     continue
-        # loan = library.open_loan(customer, book)
         funcs.open_loan(book_name, customer_id, library)
         print('\n'*10)
     elif option=='4': # Return a book 
         print('\n'*3)
         book_name=input("enter a book name or id: ")
-        # book = library.choice_book(book_name, True)
-        # if not book:
-        #     continue
-        # if book.get_loaner_id():
-        #     library.close_loan(book.get_loaner_id(), book.get_uid())
-        # else:
-        #     print('This book not loaned')
-        # input('Press Enter to continue ')
         funcs.close_loan(book_name, library)
         print('\n'*10)
     elif option=='5': # Display all books
