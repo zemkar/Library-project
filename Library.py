@@ -29,9 +29,9 @@ class Library:
         input('customer added\nPress Enter to back in menu ')
         return customer
 
-    def add_book(self, name, author, year_published, type):
+    def add_book(self, is_uid_get, uid, name, author, year_published, type):
         book = Book()
-        book.set_data(self.get_uid_for_book(), name, author, year_published, type, '')
+        book.set_data(self.get_uid_for_book(is_uid_get, uid), name, author, year_published, type, '')
         self.__books.append(book)
         input('book added\nPress Enter to back in menu ')
         return book
@@ -59,47 +59,82 @@ class Library:
         input('loan opened\nPress Enter to back in menu ')
         return loan
 
-    def save_to_file(self):
-        with open('library.txt', 'w') as lib:
-            lib.write('[***]|-|Customers:\n')
-            for customer in self.__customers:
-                lib.write(customer.to_save())
-            lib.write('[***]|-|Books:\n')
-            for book in self.__books:
-                lib.write(book.to_save())
-            lib.write('[***]|-|Loans:\n')
-            for loan in self.__loans:
-                lib.write(loan.to_save())
+    def save_to_file(self, is_one_file):
+        if is_one_file:
+            with open('library.txt', 'w') as lib:
+                lib.write('[***]|-|Customers:\n')
+                for customer in self.__customers:
+                    lib.write(customer.to_save())
+                lib.write('[***]|-|Books:\n')
+                for book in self.__books:
+                    lib.write(book.to_save())
+                lib.write('[***]|-|Loans:\n')
+                for loan in self.__loans:
+                    lib.write(loan.to_save())
+        else:
+            with open('customers.txt', 'w') as lib:
+                lib.write('[***]|-|Customers:\n')
+                for customer in self.__customers:
+                    lib.write(customer.to_save())
+            with open('books.txt', 'w') as lib:
+                lib.write('[***]|-|Books:\n')
+                for book in self.__books:
+                    lib.write(book.to_save())
+            with open('loans.txt', 'w') as lib:
+                lib.write('[***]|-|Loans:\n')
+                for loan in self.__loans:
+                    lib.write(loan.to_save())
         print('All data saved\n')
 
-    def read_from_file(self):
-        part = 0
-        with open('library.txt', 'r+') as lib:
-            for line in lib:
-                line = line[:-1]
-                line = line.split('|-|')
-                if line[0] == '[***]':
-                    part += 1
-                    continue
-                elif part == 1: 
-                    line[4]= line[4].split("|*|")
-                    self.add_customer_from_file(line[0],line[1],line[2],line[3],line[4])
-                elif part == 2:
-                    self.add_book_from_file(line[0],line[1],line[2],line[3],line[4],line[5])
-                elif part == 3:
-                    self.read_loan(line[0],line[1],line[2],line[3])
-
+    def read_from_file(self, is_one_file):
+        if is_one_file:
+            part = 0
+            with open('library.txt', 'r+') as lib:
+                for line in lib:
+                    line = line[:-1]
+                    line = line.split('|-|')
+                    if line[0] == '[***]':
+                        part += 1
+                        continue
+                    elif part == 1: 
+                        line[4]= line[4].split("|*|")
+                        self.add_customer_from_file(line[0],line[1],line[2],line[3],line[4])
+                    elif part == 2:
+                        self.add_book_from_file(line[0],line[1],line[2],line[3],line[4],line[5])
+                    elif part == 3:
+                        self.read_loan(line[0],line[1],line[2],line[3])
+        else:
+            for save in ('customers.txt', 'books.txt', 'loans.txt'):
+                with open(save, 'r+') as lib:
+                    for line in lib:
+                        line = line[:-1]
+                        line = line.split('|-|')
+                        if line[0] == '[***]':
+                            continue
+                        if save == 'customers.txt':
+                            line[4]= line[4].split("|*|")
+                            self.add_customer_from_file(line[0],line[1],line[2],line[3],line[4])
+                        elif save == 'books.txt':
+                            self.add_book_from_file(line[0],line[1],line[2],line[3],line[4],line[5])
+                        elif save == 'loans.txt':
+                            self.read_loan(line[0],line[1],line[2],line[3])
+            
     def check_uid(self, new_customer_id):
         for customer in self.__customers:
             if customer.compare_uid(new_customer_id):
                 return False
         return True
 
-    def get_uid_for_book(self):
-        uid = 1
-        for book in self.__books:
-            if uid <= int(book.get_uid()):
-                uid = int(book.get_uid()) + 1
+    def get_uid_for_book(self, is_uid_get, uid):
+        if is_uid_get:
+            for book in self.__books:
+                if book.compare_uid(uid):
+                    return False
+        else:
+            uid = 1
+            for book in self.__books:
+                if uid <= int(book.get_uid()):
+                    uid = int(book.get_uid()) + 1
         return str(uid)
 
     def find_by(self, uid_or_name, where_search):
@@ -108,17 +143,28 @@ class Library:
             for customer in self.__customers:
                 if (not uid_or_name.isnumeric()) and customer.get_name() == uid_or_name or customer.get_uid() == uid_or_name:
                     match.append(customer)
-            return match        
         elif where_search == 'books':
             for book in self.__books:
                 if (not uid_or_name.isnumeric()) and book.get_name() == uid_or_name or book.get_uid() == uid_or_name:
                     match.append(book)
-            return match
         elif where_search == 'loans':
             for loan in self.__loans:
                 if loan.compare_uid(uid_or_name[1], uid_or_name[0]): #customer_id, book_id
                     match.append(loan)
-            return match
+        if match == []:
+            input(f'No match in {where_search}. Press enter to continue  ')
+        elif len(match) > 1:
+            for i in range(len(match)):
+                print(f'[#{i+1}] ', end='')
+                match[i].print()
+                print()
+            print('More than one match found')
+            confirm = input(f'If need, enter line number with required {where_search[:-1]}  ')
+            if confirm.isdigit() and int(confirm)-1 in range(len(match)):
+                match = [match[int(confirm) - 1]]
+            else:
+                match = []
+        return match
 
     def check_book(self, name, author, year):
         for book in self.__books:
@@ -127,45 +173,36 @@ class Library:
         return False
 
     def choice_book(self, book_name, is_get):
-        books = self.find_by(book_name, 'books')
-        for i in range(len(books)):
-            print(f'[#{i+1}] ', end='')
-            books[i].print()
-            print()
-        confirm = input('Confirm your choice by entering the line number\nor press enter to return: ')
-        if confirm.isdigit() and int(confirm)-1 in range(len(books)):
-            confirm = int(confirm) - 1
-            if not is_get and books[confirm].get_loaner_id():
-                customer = self.find_by(uid_or_name=books[confirm].get_loaner_id(), where_search='customers' )[0]
-                print(f'This book already loaned by ')
-                customer.print()
-                input('\nPress enter to return ')
-                return False
-            else:
-                return books[confirm]
-        else: 
+        book = self.find_by(book_name, 'books')
+        if book == []:
             return False
+        if not is_get and (loaner_id := book[0].get_loaner_id()):
+            customer = self.find_by(uid_or_name=loaner_id, where_search='customers' )[0]
+            print(f'This book already loaned by ')
+            customer.print()
+            input('\nPress enter to return ')
+            return False
+        else:
+            return book[0]
 
     def choice_customer(self, customer_id):
         customer = self.find_by(customer_id, 'customers')
         if customer == []:
             return False    
-        customer = customer[0]
-        customer_books = customer.get_books()
+        customer_books = customer[0].get_books()
         lates = 0
         if customer_books != ['']:
             for book_id in customer_books[1:]:
-                loan = self.find_by([book_id, customer_id], 'loans')
-                if loan == []:
+                loan = self.find_by([book_id, customer_id], 'loans')[0]
+                if loan == None:
                     return False
-                loan = loan[0]
                 if not loan.is_late():
                     lates += 1
         if lates == 0:
-            return customer
+            return customer[0]
         else:
             if input('This customer have overdue loans\nare you sure want loan this book? (y/n) ') in ('y', 'Y', 'yes', 'Yes'):
-                return customer
+                return customer[0]
             return False
 
     def close_loan(self, customer_id, book_id): 
@@ -178,7 +215,11 @@ class Library:
             
     def remove_customer(self, customer_id): 
         #customer = Customer()
-        customer = self.find_by(customer_id, 'customers')[0]
+        customer = self.find_by(customer_id, 'customers')
+        if customer == []:
+            return
+        else:
+            customer = customer[0]
         if len(customer.get_books()) > 1:
             books = customer.get_books()
             if input('This customer has unreturned books. \nReturn those books? ') in ('y', 'Y', 'yes', 'Yes'):
@@ -193,7 +234,11 @@ class Library:
         self.__customers.remove(customer)
 
     def remove_book(self, book_name):
-        book = self.find_by(book_name, 'books')[0]
+        book = self.find_by(book_name, 'books')
+        if book == []:  
+            return
+        else:
+            book = book[0]
         if book.get_loaner_id():
             self.close_loan(book.get_loaner_id(), book.get_uid())
         self.__books.remove(book)
